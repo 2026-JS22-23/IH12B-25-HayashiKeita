@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>栄飲み</title>
+    
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #000000;
+            color: #ffffff;
+        }
+        header {
+            background-color: #000000;
+            border-bottom: 2px solid #ffffff;
+            padding: 20px;
+            text-align: center;
+        }
+        header h1 {
+            margin: 0;
+            color: #ffffff;
+            font-size: 1.6em;
+            letter-spacing: 1px;
+        }
+        header p {
+            margin: 8px 0 0 0;
+            font-size: 0.9em;
+            color: #aaaaaa;
+        }
+        .container {
+            display: flex;
+            max-width: 1200px;
+            margin: 20px auto;
+            gap: 20px;
+            padding: 0 15px;
+            flex-direction: column;
+        }
+        .spot-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .spot-card {
+            background: #0a0a0a;
+            border: 1px solid #333333;
+            border-radius: 6px;
+            padding: 20px;
+            display: flex;
+            gap: 20px;
+            align-items: stretch;
+        }
+        .spot-info-side {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .spot-map-side {
+            flex: 1;
+            height: 300px;
+            border-radius: 4px;
+            border: 1px solid #333333;
+            overflow: hidden;
+        }
+        .spot-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            border-bottom: 1px solid #222222;
+            padding-bottom: 12px;
+            margin-bottom: 12px;
+        }
+        .spot-thumb {
+            width: 70px;
+            height: 70px;
+            object-fit: cover;
+            border-radius: 4px;
+            border: 1px solid #555555;
+        }
+        .spot-title-area h2 {
+            margin: 0 0 5px 0;
+            color: #ffffff;
+            font-size: 1.2em;
+        }
+        .spot-badge {
+            background: #ffffff;
+            color: #000000;
+            font-weight: bold;
+            font-size: 0.75em;
+            padding: 3px 8px;
+            border-radius: 10px;
+            display: inline-block;
+        }
+        .spot-body {
+            font-size: 0.9em;
+            line-height: 1.6;
+            color: #cccccc;
+            margin-bottom: 15px;
+        }
+        .spot-details {
+            list-style: none;
+            padding: 0;
+            margin: 10px 0 0 0;
+            font-size: 0.85em;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            border-top: 1px dashed #333333;
+            padding-top: 10px;
+        }
+        .spot-details li {
+            display: flex;
+            gap: 8px;
+        }
+        .spot-details .label {
+            color: #888888;
+            min-width: 100px;
+            font-weight: bold;
+        }
+        .spot-details .value {
+            color: #dddddd;
+        }
+        .map-button {
+            background: #ffffff;
+            color: #000000;
+            border: none;
+            font-weight: bold;
+            width: 100%;
+            padding: 12px;
+            cursor: pointer;
+            border-radius: 4px;
+            text-align: center;
+            display: block;
+            text-decoration: none;
+            box-sizing: border-box;
+            transition: background 0.2s;
+        }
+        .map-button:hover {
+            background: #cccccc;
+        }
+        @media (max-width: 768px) {
+            .spot-card {
+                flex-direction: column;
+            }
+            .spot-map-side {
+                height: 250px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>栄住吉飲み</h1>
+    </header>
+
+    <div class="container">
+        <div class="spot-list" id="spot-list">
+        </div>
+    </div>
+
+ <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCAKLjisxFelKwIl1_G6MiEO9-ya7Twr5s&callback=initAllMaps" async defer></script>
+
+    <script>
+        const spots = [
+            {
+                id: "meeting",
+                name: "栄ドンキ集合(21:40 集合)",
+                lat: 35.170228, lng: 136.906380,
+                desc: "待ち合わせに使いやすい",
+                location: "〒460-0003 愛知県名古屋市中区錦３丁目１７−１５",
+                hours: "21:40集合",
+                img: "images/images1.jpg",
+                timeLabel: "21:40〜 (集合)"
+            },
+            {
+                id: "monja_okoge",
+                name: "月島もんじゃ おこげ 栄",
+                lat: 35.167275, lng: 136.903715,
+                desc: "店員さんがもんじゃ焼き、お好み焼きを焼いてくれる 海鮮や一品料理が充実してる",
+                location: "〒460-0008 愛知県名古屋市中区栄３丁目９−２９",
+                hours: "【月〜金】16:00 - 04:00<br>【土・日・祝日・祝前日・祝後日】11:00 - 04:00",
+                price: "約２,000円〜3,000円",
+                img: "images/images2.jpg",
+                timeLabel: "22:00〜 (ディナー)"
+            },
+            {
+                id: "id_cafe",
+                name: "iD cafe (アイディーカフェ)",
+                lat: 35.1680277, lng: 136.9032617,
+                desc: "名古屋最大のクラブ！複数フロアで色々なジャンルの音楽を楽しめる。",
+                location: "〒460-0008名古屋市中区栄3-1-15三越ビル",
+                hours: "19:00〜25:00",
+                price: "【月〜木・日】男性 2,000円(4D) / 女性 1,000円(2D)<br>【金・土】男性 3,000円(4D) / 女性 2,000円(4D)",
+                img: "images/images3.jpg",
+                timeLabel: "23:30〜 (クラブ)"
+            },
+            {
+                id: "t2_nagoya",
+                name: "T2 NAGOYA",
+                lat: 35.1659604, lng:136.9044734,
+                desc: "1,500名以上を収容できる大型店舗です。4つの屋内フロアと名古屋の夜景が一望できるルーフトップ（屋上）があり、その日の気分や好みの音楽ジャンルに合わせて移動できます。",
+                location: "〒460-0008愛知県名古屋市中区栄3-12-19",
+                hours: "【金土・祝前日】21:00〜5:00<br>【日水木】22:00〜5:00<br>【月火】CLOSE",
+                price: "【日・水・木】男性 1,000円〜1,500円(1D) / 女性 無料<br>【金・祝前】男性 1,500円〜2,500円(2D) / 女性 無料〜1,000円(2D)<br>【土曜】男性 2,000円〜3,000円(2D) / 女性 1,000円〜1,500円(2D)",
+                img: "images/images4.png",
+                timeLabel: "翌0:30〜 (ピーク)"
+            },
+            {
+                id: "mokkosu",
+                name: "もっこす 栄店",
+                lat: 35.1658314, lng: 136.903531,
+                desc: "名古屋・栄の「もっこす」は、名物の「納豆ラーメン」が看板メニューの深夜営業ラーメン店クリーミーでふわふわに泡立った豚骨スープと大粒納豆の組み合わせは、クセになる味わいでシメの一杯として最高です",
+                location: "〒460-0008 愛知県名古屋市中区栄３丁目１１−１８",
+                hours: "【月・火・水・木・日】11:00 - 14:00 (L.O. 14:00) / 18:00 - 03:00 (L.O. 02:45)<br>【金・土】11:00 - 14:00 (L.O. 14:00) / 18:00 - 05:00 (L.O. 04:30)",
+                price: "約1,000円〜1,500円",
+                img: "images/images5.jpg",
+                timeLabel: "翌2:00〜 (ラーメン)"
+            },
+            {
+                id: "c_stand",
+                name: "C.STAND 名古屋栄店",
+                lat: 35.1673709, lng:136.9038418,
+                desc: "おしゃれな空間でシーシャを吸いながら朝までまったり会話を楽しめる ドリンクが安い",
+                location: "〒460-0008 愛知県名古屋市中区栄３丁目９−２ Gems栄 9F",
+                hours: "13:00〜翌5:00 (最終入店 4:00、ドリンクL.O. 4:30)",
+                price: "約2,000円〜3,000円",
+                img: "images/images6.png",
+                timeLabel: "翌3:00〜 (チル)"
+            },
+            {
+                id: "kaisan",
+                name: "地下鉄 栄駅 (5:30 始発解散)",
+                lat: 35.1697165, lng:136.90652,
+                desc: "住吉から駅までたくさんの動物に出会えると思います",
+                location: "地下鉄東山線・名城線 栄駅 改札前",
+                hours: "5:30頃〜 (始発)",
+                price: "電車代各自",
+                img: "images/images7.jpg",
+                timeLabel: "翌朝5:30〜 (解散)"
+            }
+        ];
+
+        const monotoneMapStyle = [
+            { elementType: "geometry", stylers: [{ color: "#111111" }] },
+            { elementType: "labels.text.stroke", stylers: [{ color: "#000000" }] },
+            { elementType: "labels.text.fill", stylers: [{ color: "#aaaaaa" }] },
+            { featureType: "road", elementType: "geometry", stylers: [{ color: "#222222" }] },
+            { featureType: "road", elementType: "geometry.stroke", stylers: [{ color: "#000000" }] },
+            { featureType: "road", elementType: "labels.text.fill", stylers: [{ color: "#777777" }] },
+            { featureType: "water", elementType: "geometry", stylers: [{ color: "#000000" }] },
+            { featureType: "poi", elementType: "geometry", stylers: [{ color: "#1a1a1a" }] },
+            { featureType: "poi", elementType: "labels.text.fill", stylers: [{ color: "#666666" }] }
+        ];
+
+        function initAllMaps() {
+            const $list = $("#spot-list");
+            $list.empty();
+
+            spots.forEach((spot, index) => {
+                let detailsHtml = `
+                    <li><span class="label"> 場所</span><span class="value">${spot.location}</span></li>
+                    <li><span class="label"> 営業時間</span><span class="value">${spot.hours}</span></li>
+                `;
+                if (spot.price) {
+                    detailsHtml += `<li><span class="label"> 一人あたりの料金</span><span class="value">${spot.price}</span></li>`;
+                }
+
+                const cardHtml = `
+                    <div class="spot-card">
+                        <div class="spot-info-side">
+                            <div>
+                                <div class="spot-header">
+                                    <img src="${spot.img}" class="spot-thumb">
+                                    <div class="spot-title-area">
+                                        <h2>${spot.name}</h2>
+                                        <span class="spot-badge">${spot.timeLabel}</span>
+                                    </div>
+                                </div>
+                                <div class="spot-body">
+                                    <p>${spot.desc}</p>
+                                    <ul class="spot-details">
+                                        ${detailsHtml}
+                                    </ul>
+                                </div>
+                            </div>
+                            <div>
+                                <a href="https://www.google.com/maps/search/?api=1&query=${spot.lat},${spot.lng}" target="_blank" class="map-button">Googleマップアプリで経路を開く</a>
+                            </div>
+                        </div>
+                        <div class="spot-map-side">
+                            <div id="map-${index}" style="width: 100%; height: 100%;"></div>
+                        </div>
+                    </div>
+                `;
+                $list.append(cardHtml);
+
+                const mapElement = document.getElementById(`map-${index}`);
+                if (mapElement) {
+                    const spotMap = new google.maps.Map(mapElement, {
+                        zoom: 17,
+                        center: { lat: spot.lat, lng: spot.lng },
+                        styles: monotoneMapStyle,
+                        mapTypeControl: false,
+                        streetViewControl: false,
+                        fullscreenControl: false
+                    });
+
+                    const marker = new google.maps.Marker({
+                        position: { lat: spot.lat, lng: spot.lng },
+                        map: spotMap,
+                        title: spot.name,
+                        animation: google.maps.Animation.DROP
+                    });
+
+                    const infowindow = new google.maps.InfoWindow({
+                        content: `<div style="color:#000; font-weight:bold;">${spot.name}</div>`
+                    });
+
+                    marker.addListener("click", () => {
+                        infowindow.open(spotMap, marker);
+                    });
+                }
+            });
+        }
+    </script>
+</body>
+</html>
